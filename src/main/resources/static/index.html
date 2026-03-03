@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-gray-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Héroes API</title>
+    <!-- 1. Cargar Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Pequeño spinner para estados de carga */
+        .loader {
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="h-full text-gray-100">
+    <div class="container mx-auto p-8 max-w-6xl">
+        <h1 class="text-4xl font-bold mb-8 text-center text-white">Gestor de Héroes, Equipos y Poderes</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-blue-400">Héroes</h2>
+                
+                <form id="form-heroe" class="mb-6 space-y-3">
+                    <input type="text" id="heroe-nombre" placeholder="Nombre del Héroe" class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                    <input type="text" id="heroe-universo" placeholder="Universo (ej. Marvel, DC)" class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                   
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200">Crear Héroe</button>
+                </form>
+
+                <div id="lista-heroes" class="space-y-3">
+                    <div class="loader w-8 h-8 rounded-full border-4 border-gray-600 border-t-blue-500 animate-spin mx-auto"></div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-green-400">Equipos</h2>
+                
+                <form id="form-equipo" class="mb-6 space-y-3">
+                    <input type="text" id="equipo-nombre" placeholder="Nombre del Equipo" class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-green-500" required>
+                    <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded transition duration-200">Crear Equipo</button>
+                </form>
+
+                <div id="lista-equipos" class="space-y-3">
+                    <div class="loader w-8 h-8 rounded-full border-4 border-gray-600 border-t-green-500 animate-spin mx-auto"></div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-2xl font-semibold mb-4 text-yellow-400">Poderes</h2>
+                
+                <form id="form-poder" class="mb-6 space-y-3">
+                    <input type="text" id="poder-nombre" placeholder="Nombre del Poder" class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
+                    <input type="text" id="poder-descripcion" placeholder="Descripción" class="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+                    <button type="submit" class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded transition duration-200">Crear Poder</button>
+                </form>
+
+                <div id="lista-poderes" class="space-y-3">
+                    <div class="loader w-8 h-8 rounded-full border-4 border-gray-600 border-t-yellow-500 animate-spin mx-auto"></div>
+                </div>
+            </div>
+
+        </div>
+    </div> 
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const API_BASE_URL = '/api/v1'; 
+            const listaHeroes = document.getElementById('lista-heroes');
+            const listaEquipos = document.getElementById('lista-equipos');
+            const listaPoderes = document.getElementById('lista-poderes');
+
+            const formHeroe = document.getElementById('form-heroe');
+            const formEquipo = document.getElementById('form-equipo');
+            const formPoder = document.getElementById('form-poder');
+
+            async function fetchData(endpoint) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`);
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error(`Error al cargar ${endpoint}:`, error);
+                    return []; 
+                }
+            }
+
+            async function createData(endpoint, data) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error(`Error al crear en ${endpoint}:`, error);
+                    return null;
+                }
+            }
+
+            async function deleteData(endpoint) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                        method: 'DELETE',
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    return true; 
+                } catch (error) {
+                    console.error(`Error al borrar en ${endpoint}:`, error);
+                    return false;
+                }
+            }
+
+
+            function renderItem(item, tipo) {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center bg-gray-700 p-3 rounded shadow';
+                
+                let content = `<span class="font-medium">${item.nombre}</span>`;
+                if (tipo === 'heroe') {
+                    content = `<span class="font-medium">${item.nombre}</span> <span class="text-sm text-gray-400">${item.universo || 'Sin universo'}</span>`;
+                } else if (tipo === 'poder') {
+                    content = `<span class="font-medium">${item.nombre}</span> <span class="text-sm text-gray-400">${item.descripcion || 'Sin desc.'}</span>`;
+                }
+
+                div.innerHTML = `
+                    <div>${content}</div>
+                    <button data-id="${item.id}" data-tipo="${tipo}" class="btn-delete text-red-400 hover:text-red-300 font-bold">&times;</button>
+                `;
+                return div;
+            }
+
+            function renderList(container, items, tipo) {
+                container.innerHTML = ''; 
+                if (items.length === 0) {
+                    container.innerHTML = `<p class="text-gray-500 text-center">No hay ${tipo}s.</p>`;
+                    return;
+                }
+                items.forEach(item => {
+                    container.appendChild(renderItem(item, tipo));
+                });
+            }
+
+
+            async function cargarTodo() {
+                const [heroes, equipos, poderes] = await Promise.all([
+                    fetchData('/heroes'),
+                    fetchData('/equipos'),
+                    fetchData('/poderes')
+                ]);
+
+                renderList(listaHeroes, heroes, 'heroe');
+                renderList(listaEquipos, equipos, 'equipo');
+                renderList(listaPoderes, poderes, 'poder');
+            }
+
+
+            formHeroe.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nombre = document.getElementById('heroe-nombre').value;
+                const universo = document.getElementById('heroe-universo').value;
+                if (!nombre) return;
+                
+                const nuevoHeroe = await createData('/heroes', { nombre, universo, base: 'Base Secreta' }); // 'base' es hardcoded por simplicidad
+                if (nuevoHeroe) {
+                    cargarTodo();
+                    formHeroe.reset();
+                }
+            });
+
+            formEquipo.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nombre = document.getElementById('equipo-nombre').value;
+                if (!nombre) return;
+
+                const nuevoEquipo = await createData('/equipos', { nombre });
+                if (nuevoEquipo) {
+                    cargarTodo();
+                    formEquipo.reset();
+                }
+            });
+
+            formPoder.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nombre = document.getElementById('poder-nombre').value;
+                const descripcion = document.getElementById('poder-descripcion').value;
+                if (!nombre) return;
+
+                const nuevoPoder = await createData('/poderes', { nombre, descripcion });
+                if (nuevoPoder) {
+                    cargarTodo();
+                    formPoder.reset();
+                }
+            });
+
+
+            document.body.addEventListener('click', async (e) => {
+                if (e.target.classList.contains('btn-delete')) {
+                    const id = e.target.dataset.id;
+                    const tipo = e.target.dataset.tipo;
+                    
+                    if (!id || !tipo) return;
+
+                    if (!confirm(`¿Estás seguro de que quieres borrar este ${tipo}?`)) {
+                        return;
+                    }
+
+                    let endpoint = '';
+                    switch (tipo) {
+                        case 'heroe': endpoint = `/heroes/${id}`; break;
+                        case 'equipo': endpoint = `/equipos/${id}`; break;
+                        case 'poder': endpoint = `/poderes/${id}`; break;
+                    }
+
+                    const exito = await deleteData(endpoint);
+                    if (exito) {
+                        cargarTodo(); 
+                    } else {
+                        alert(`Error al borrar el ${tipo}.`);
+                    }
+                }
+            });
+            cargarTodo();
+        });
+    </script>
+</body>
+</html>

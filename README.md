@@ -1,150 +1,291 @@
-# Spring Boot JWT Heroes API 🇪🇸 🇬🇧
+# Spring Boot JWT Heroes API
 
-[![es](https://img.shields.io/badge/lang-Espa%C3%B1ol-red.svg)](#versi%C3%B3n-en-espa%C3%B1ol)
-[![en](https://img.shields.io/badge/lang-English-blue.svg)](#english-version)
+[![Java](https://img.shields.io/badge/Java-17%2B-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![JWT](https://img.shields.io/badge/Auth-JWT-000000?logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.x-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![MIT](https://img.shields.io/badge/Licencia-MIT-green)](LICENSE)
+
+[Español](#español) · [English](#english)
 
 ---
 
-## Versión en Español
-
-Este es un proyecto de demostración que muestra una API REST construida con Spring Boot, asegurada mediante JSON Web Tokens (JWT) y conectada a una base de datos MySQL. Es ideal como punto de partida para proyectos que requieran autenticación y operaciones CRUD sobre una entidad (Héroes).
+## Español
 
 ### Índice
-1. [Tecnologías Utilizadas](#tecnologías-utilizadas)
-2. [Requisitos Previos](#requisitos-previos)
-3. [Configuración e Instalación](#configuración-e-instalación)
-4. [Estructura del Proyecto](#estructura-del-proyecto)
-5. [Endpoints de la API](#endpoints-de-la-api)
 
-### Tecnologías Utilizadas
-- **Java 17**
-- **Spring Boot 3.5.8** (Starters: Web, Data JPA, Security, Actuator, Test)
-- **MySQL Connector** (Conexión a la base de datos)
-- **JJWT 0.11.5** (Creación y validación de tokens JWT)
-- **Maven** (Gestión de dependencias)
+- [Descripción](#descripción)
+- [Stack tecnológico](#stack-tecnológico)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Requisitos](#requisitos)
+- [Configuración](#configuración)
+- [Ejecución](#ejecución)
+- [Endpoints](#endpoints)
+- [Autenticación](#autenticación)
+- [Licencia](#licencia)
 
-### Requisitos Previos
-- [Java Development Kit (JDK) 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) o superior.
-- [Maven](https://maven.apache.org/download.cgi) instalado en tu equipo.
-- Servidor de base de datos **MySQL** ejecutándose localmente en el puerto `3307` (puedes ajustarlo en la configuración).
+### Descripción
 
-### Configuración e Instalación
+API REST de ejemplo construida con **Spring Boot 3** y asegurada con **JWT**. Gestiona un universo de superhéroes con sus equipos, poderes e identidades secretas, y sirve como base para proyectos que necesiten autenticación sin sesiones y operaciones CRUD por capas.
 
-1. **Clona el repositorio:**
-   ```bash
-   git clone <URL_DE_TU_REPOSITORIO>
-   cd spring-boot-jwt-heroes-api
-   ```
+Todas las rutas cuelgan de `/api/v1` y, salvo el registro y el login, requieren la cabecera `Authorization: Bearer <token>`.
 
-2. **Configura la base de datos y JWT:**
-   Abre el archivo `src/main/resources/application.properties` y configura las credenciales de tu base de datos y una clave secreta fuerte para JWT:
-   ```properties
-   spring.datasource.password=TU_PASSWORD_DE_BASE_DE_DATOS
-   jwt.secret=TU_CLAVE_SUPER_SECRETA
-   ```
-   *(Nota: La base de datos `heroes_db` se creará automáticamente gracias a la propiedad `createDatabaseIfNotExist=true` si tu usuario tiene permisos suficientes).*
+### Stack tecnológico
 
-3. **Ejecuta la aplicación:**
-   Puedes iniciar la aplicación usando el wrapper de Maven (incluido) o tu instalación local de Maven:
-   ```bash
-   mvnw spring-boot:run
-   ```
-   o
-   ```bash
-   mvn spring-boot:run
-   ```
-   La aplicación arrancará por defecto en `http://localhost:8080`.
+| Capa | Tecnología |
+|---|---|
+| Lenguaje | Java 17+ |
+| Framework | Spring Boot 3.5.8 (Web, Data JPA, Security, Actuator, Test) |
+| Tokens | JJWT 0.11.5 |
+| Base de datos | MySQL 8 (conector oficial) |
+| Build | Maven y Maven Wrapper |
+| Contraseñas | BCrypt |
 
-### Estructura del Proyecto
-El proyecto sigue la arquitectura clásica por capas de Spring Boot:
-- `Controller`: Maneja las peticiones HTTP y define los endpoints.
-- `Service`: Contiene la lógica de negocio.
-- `Repository`: Interfaces de Spring Data JPA para el acceso a la base de datos.
-- `Model/Entity`: Representación de las tablas de la base de datos como objetos Java.
-- `Security`: Configuración de Spring Security, filtros JWT y clases de ayuda para la autenticación.
+### Estructura del proyecto
 
-### Endpoints de la API
-*(Asegúrate de documentar aquí las rutas reales de tu proyecto. Ejemplo a continuación:)*
+```text
+spring-boot-jwt-heroes-api/
+├── src/main/java/com/example/jwt2/
+│   ├── JWT2Application.java
+│   ├── config/          # Seguridad, inicialización de roles
+│   ├── controllers/     # Auth, héroes, equipos, poderes e identidades
+│   ├── dto/             # Objetos de transferencia
+│   ├── entities/        # Entidades JPA (Heroe, Equipo, Poder, Role, User…)
+│   ├── filter/          # Filtro JWT por petición
+│   ├── repositories/    # Spring Data JPA
+│   ├── security/        # UserDetails y utilidades
+│   ├── service/         # Lógica de negocio
+│   └── util/            # Generación y validación del token
+├── src/main/resources/application.properties
+├── mvnw · mvnw.cmd
+├── LICENSE
+└── README.md
+```
 
-**Públicos:**
-- `POST /api/auth/login`: Ruta para autenticarse usando usuario/contraseña. Devuelve un Token JWT de acceso.
+### Requisitos
 
-**Protegidos (Requieren cabecera `Authorization: Bearer <token>`):**
-- `GET /api/heroes`: Obtiene una lista de todos los héroes.
-- `GET /api/heroes/{id}`: Obtiene los detalles de un héroe específico.
-- `POST /api/heroes`: Crea un nuevo héroe.
-- `PUT /api/heroes/{id}`: Actualiza un héroe existente.
-- `DELETE /api/heroes/{id}`: Elimina un héroe por su ID.
+- **JDK 17** o superior.
+- **MySQL 8** escuchando en el puerto **3307** (ajustable).
+- Maven no es obligatorio: el wrapper viene incluido.
+
+### Configuración
+
+Edita `src/main/resources/application.properties`:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3307/heroes_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+spring.datasource.username=root
+spring.datasource.password=TU_CONTRASEÑA
+
+jwt.secret=UNA_CLAVE_LARGA_Y_ALEATORIA
+jwt.expiration=86400000
+```
+
+- `createDatabaseIfNotExist=true` crea `heroes_db` si el usuario tiene permisos.
+- Sustituye el secreto de ejemplo por uno propio y no lo subas al repositorio. `jwt.expiration` está en milisegundos (24 h por defecto).
+- Si tu MySQL usa el puerto 3306, cambia la URL; el archivo de ejemplo apunta a 3307.
+
+### Ejecución
+
+```bash
+./mvnw spring-boot:run        # Windows: mvnw.cmd spring-boot:run
+```
+
+La API arranca en `http://localhost:8080`.
+
+### Endpoints
+
+**Autenticación** — base `/api/v1/auth`
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/register` | Crea un usuario. Cuerpo: `username`, `password`, `email`, `roles` |
+| `POST` | `/login` | Devuelve `{ "token": "…" }` |
+| `GET` | `/me` | Datos del usuario autenticado |
+
+**Héroes** — base `/api/v1/heroes`
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/` | Lista todos los héroes |
+| `GET` | `/{id}` | Héroe por ID |
+| `GET` | `/buscar?…` | Búsqueda por filtros |
+| `GET` | `/buscar/nombre?prefijo=…` | Héroes cuyo nombre empieza por el prefijo |
+| `GET` | `/universo/{universo}` | Héroes de un universo |
+| `POST` | `/` | Crea un héroe |
+| `PUT` | `/{id}` | Actualiza un héroe |
+| `PUT` | `/universo/{universo}/base` | Actualiza un campo común del universo |
+| `DELETE` | `/{id}` | Elimina un héroe |
+| `POST` | `/{heroeId}/poderes` | Asigna un poder al héroe |
+| `DELETE` | `/{heroeId}/poderes/{poderId}` | Quita un poder al héroe |
+
+**Equipos** — base `/api/v1/equipos`: `GET /`, `GET /{id}`, `GET /min-miembros/{count}`, `POST /`, `PUT /{id}`, `DELETE /{id}`.
+
+**Poderes** — base `/api/v1/poderes`: `GET /`, `GET /{id}`, `GET /sin-asignar`, `POST /`, `PUT /{id}`, `DELETE /{id}`, `DELETE /nombre/{nombre}`.
+
+**Identidades secretas** — base `/api/v1/identidades`: `GET /`, `GET /{id}`, `POST /`, `PUT /{id}`, `DELETE /{id}`.
+
+### Autenticación
+
+```bash
+# 1. Registrar un usuario
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demo","password":"secreto123","email":"demo@example.com"}'
+
+# 2. Obtener el token
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demo","password":"secreto123"}'
+
+# 3. Usar el token
+curl http://localhost:8080/api/v1/heroes \
+  -H "Authorization: Bearer TU_TOKEN"
+```
+
+El campo `roles` del registro acepta `["admin"]`; si se omite, el usuario recibe `ROLE_USER`. Los roles se crean al arrancar, pero la configuración de seguridad actual solo exige estar autenticado: no restringe rutas por rol. Si necesitas permisos distintos por rol, añade reglas en `config/SecurityConfig.java`.
+
+### Licencia
+
+**MIT** — consulta [LICENSE](LICENSE).
 
 ---
 
-## English Version
+## English
 
-This is a demo project showcasing a REST API built with Spring Boot, secured using JSON Web Tokens (JWT), and connected to a MySQL database. It serves as a great starting point for projects requiring authentication and CRUD operations on an entity (Heroes).
+### Table of contents
 
-### Table of Contents
-1. [Technologies Used](#technologies-used)
-2. [Prerequisites](#prerequisites)
-3. [Setup and Installation](#setup-and-installation)
-4. [Project Structure](#project-structure)
-5. [API Endpoints](#api-endpoints)
+- [Overview](#overview)
+- [Tech stack](#tech-stack)
+- [Project structure](#project-structure)
+- [Requirements](#requirements)
+- [Configuration](#configuration)
+- [Running](#running)
+- [Endpoints](#endpoints)
+- [Authentication](#authentication)
+- [License](#license)
 
-### Technologies Used
-- **Java 17**
-- **Spring Boot 3.5.8** (Starters: Web, Data JPA, Security, Actuator, Test)
-- **MySQL Connector** (Database connection)
-- **JJWT 0.11.5** (JWT creation and validation)
-- **Maven** (Dependency management)
+### Overview
 
-### Prerequisites
-- [Java Development Kit (JDK) 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) or higher.
-- [Maven](https://maven.apache.org/download.cgi) installed on your machine.
-- **MySQL** database server running locally on port `3307` (this can be adjusted in the configuration).
+A sample REST API built with **Spring Boot 3** and secured with **JWT**. It manages a superhero universe with teams, powers and secret identities, and works as a starting point for projects that need stateless authentication and layered CRUD.
 
-### Setup and Installation
+Every route lives under `/api/v1` and, except for registration and login, requires the `Authorization: Bearer <token>` header.
 
-1. **Clone the repository:**
-   ```bash
-   git clone <YOUR_REPOSITORY_URL>
-   cd spring-boot-jwt-heroes-api
-   ```
+### Tech stack
 
-2. **Configure the Database and JWT:**
-   Open the `src/main/resources/application.properties` file and configure your database credentials and a strong secret key for JWT:
-   ```properties
-   spring.datasource.password=YOUR_DATABASE_PASSWORD
-   jwt.secret=YOUR_SUPER_SECRET_KEY
-   ```
-   *(Note: The `heroes_db` database will be created automatically thanks to the `createDatabaseIfNotExist=true` property if your user has sufficient permissions).*
+| Layer | Technology |
+|---|---|
+| Language | Java 17+ |
+| Framework | Spring Boot 3.5.8 (Web, Data JPA, Security, Actuator, Test) |
+| Tokens | JJWT 0.11.5 |
+| Database | MySQL 8 (official connector) |
+| Build | Maven and the Maven Wrapper |
+| Passwords | BCrypt |
 
-3. **Run the application:**
-   You can start the application using the included Maven wrapper or your local Maven installation:
-   ```bash
-   mvnw spring-boot:run
-   ```
-   or
-   ```bash
-   mvn spring-boot:run
-   ```
-   The application will start by default at `http://localhost:8080`.
+### Project structure
 
-### Project Structure
-The project follows the classic Spring Boot layered architecture:
-- `Controller`: Handles HTTP requests and defines endpoints.
-- `Service`: Contains business logic.
-- `Repository`: Spring Data JPA interfaces for database access.
-- `Model/Entity`: Representation of database tables as Java objects.
-- `Security`: Spring Security configuration, JWT filters, and authentication helper classes.
+```text
+spring-boot-jwt-heroes-api/
+├── src/main/java/com/example/jwt2/
+│   ├── JWT2Application.java
+│   ├── config/          # Security and role initialisation
+│   ├── controllers/     # Auth, heroes, teams, powers and identities
+│   ├── dto/             # Data transfer objects
+│   ├── entities/        # JPA entities (Heroe, Equipo, Poder, Role, User…)
+│   ├── filter/          # Per-request JWT filter
+│   ├── repositories/    # Spring Data JPA
+│   ├── security/        # UserDetails and helpers
+│   ├── service/         # Business logic
+│   └── util/            # Token generation and validation
+├── src/main/resources/application.properties
+├── mvnw · mvnw.cmd
+├── LICENSE
+└── README.md
+```
 
-### API Endpoints
-*(Make sure to document your actual project routes here. Example below:)*
+### Requirements
 
-**Public:**
-- `POST /api/auth/login`: Route to authenticate using username/password. Returns a JWT access token.
+- **JDK 17** or later.
+- **MySQL 8** listening on port **3307** (configurable).
+- Maven is optional: the wrapper ships with the repo.
 
-**Protected (Requires `Authorization: Bearer <token>` header):**
-- `GET /api/heroes`: Gets a list of all heroes.
-- `GET /api/heroes/{id}`: Gets details of a specific hero.
-- `POST /api/heroes`: Creates a new hero.
-- `PUT /api/heroes/{id}`: Updates an existing hero.
-- `DELETE /api/heroes/{id}`: Deletes a hero by their ID.
+### Configuration
+
+Edit `src/main/resources/application.properties`:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3307/heroes_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+spring.datasource.username=root
+spring.datasource.password=YOUR_PASSWORD
+
+jwt.secret=A_LONG_RANDOM_KEY
+jwt.expiration=86400000
+```
+
+- `createDatabaseIfNotExist=true` creates `heroes_db` when the user has enough privileges.
+- Replace the sample secret with your own and never commit it. `jwt.expiration` is in milliseconds (24 h by default).
+- If your MySQL uses port 3306, change the URL; the sample file points at 3307.
+
+### Running
+
+```bash
+./mvnw spring-boot:run        # Windows: mvnw.cmd spring-boot:run
+```
+
+The API starts at `http://localhost:8080`.
+
+### Endpoints
+
+**Authentication** — base `/api/v1/auth`
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/register` | Creates a user. Body: `username`, `password`, `email`, `roles` |
+| `POST` | `/login` | Returns `{ "token": "…" }` |
+| `GET` | `/me` | Authenticated user data |
+
+**Heroes** — base `/api/v1/heroes`
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | Lists every hero |
+| `GET` | `/{id}` | Hero by ID |
+| `GET` | `/buscar?…` | Filtered search |
+| `GET` | `/buscar/nombre?prefijo=…` | Heroes whose name starts with the prefix |
+| `GET` | `/universo/{universo}` | Heroes in a universe |
+| `POST` | `/` | Creates a hero |
+| `PUT` | `/{id}` | Updates a hero |
+| `PUT` | `/universo/{universo}/base` | Updates a shared field for the universe |
+| `DELETE` | `/{id}` | Deletes a hero |
+| `POST` | `/{heroeId}/poderes` | Assigns a power to the hero |
+| `DELETE` | `/{heroeId}/poderes/{poderId}` | Removes a power from the hero |
+
+**Teams** — base `/api/v1/equipos`: `GET /`, `GET /{id}`, `GET /min-miembros/{count}`, `POST /`, `PUT /{id}`, `DELETE /{id}`.
+
+**Powers** — base `/api/v1/poderes`: `GET /`, `GET /{id}`, `GET /sin-asignar`, `POST /`, `PUT /{id}`, `DELETE /{id}`, `DELETE /nombre/{nombre}`.
+
+**Secret identities** — base `/api/v1/identidades`: `GET /`, `GET /{id}`, `POST /`, `PUT /{id}`, `DELETE /{id}`.
+
+### Authentication
+
+```bash
+# 1. Register a user
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demo","password":"secret123","email":"demo@example.com"}'
+
+# 2. Get the token
+curl -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"demo","password":"secret123"}'
+
+# 3. Use the token
+curl http://localhost:8080/api/v1/heroes \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+The `roles` field accepts `["admin"]`; when omitted, the user gets `ROLE_USER`. Roles are created on startup, but the current security config only requires authentication: it does not restrict routes by role. Add rules in `config/SecurityConfig.java` if you need per-role permissions.
+
+### License
+
+**MIT** — see [LICENSE](LICENSE).
